@@ -6,7 +6,7 @@ const byte sclPin = 6;  // digital pin 6 wired to 'c' on BlinkM
 #define disk1 0x50
 SoftI2CMaster i2c = SoftI2CMaster( sdaPin,sclPin );
 
-
+asdasd
 
 //
 void setup()
