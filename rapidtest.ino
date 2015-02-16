@@ -1,5 +1,3 @@
-#include <Adafruit_GFX.h>    // Core graphics library
-#include "SWTFT.h" // Hardware-specific library
 #include <avr/io.h>
 #include <Wire.h>
 #include "Adafruit_FRAM_I2C.h"
@@ -11,7 +9,7 @@ uint16_t          framAddr = 0;
 #include <avr/interrupt.h>
 
 int i;
-unsigned char c;
+int c;
 #define F_CPU 16000000UL
 #define L_ARRAY 128
 #define L_ARRAY_1 129
@@ -23,10 +21,10 @@ unsigned char c;
 #define MAGENTA 0xF81F
 #define YELLOW  0xFFE0
 #define WHITE   0xFFFF
-int asd;
+unsigned long asd;
  int a=0;
  int b;
- SWTFT tft;
+
 
 //global vars
 uint8_t CLKcycleCounter = 0; 
@@ -90,10 +88,10 @@ void setup() {
  
   Serial.begin(9600);
  Serial.println(F("TFT LCD test"));
-tft.reset();
-   uint16_t identifier = tft.readID();
-  tft.begin(identifier);
- 
+
+
+
+ fram.begin();
  
  DDRB |= (1 << PINB2) | (1 << PINB3);
   PORTB &= ~(1 << PINB2); 
@@ -104,7 +102,7 @@ tft.reset();
   ADCSRA |= (1 << ADEN); 
   ADCSRA |= (1 << ADPS2); 
   ADCSRA |= (1 << ADIE); 
-  ADMUX |= (1 << ADLAR) | (1 << REFS0) | (1 << MUX2) | (1 << MUX0); 
+  ADMUX |= ((1 << ADLAR) | (1 << REFS0)); 
     pinMode(10, OUTPUT); 
       pinMode(11, OUTPUT); 
  
@@ -119,7 +117,7 @@ tft.reset();
   __asm__("nop\n\t"); 
  PORTB &= ~(1 << PINB2); 
 
-tft.fillScreen(BLUE );
+
   ADCSRA |= (1 << ADSC);
 }
 
@@ -127,39 +125,54 @@ void loop() {
 
 
 
-tft.setRotation(0);
-for(a=0;a<4095;a++){
+a=0;
+while(a<2048){
  for(i=0;i<128;i++){
-fram.write8(a, (prepix[i]>>8));
-  fram.write8(a+1, (prepix[i]& 0xFF));
-   c=fram.read8( a);
-    b=c<<8;
-    c=fram.read8(a+1);
-    b=b+(c & 0xFF);
-    Serial.println(b);
-  a++;
+   c=prepix[i];
+fram.write8(2*a, (c>>8));
+  fram.write8(2*a+1, (c& 0xFF));
+ a++;
+ }
  
  }
-    }  
+    
 
+a=0;
+asd=0;
 for(i=0;i<128;i++){
-      aa[i] =pixels[i];
+  a=i;
+while(a<2049){
+c=fram.read8(2*a);
+    b=c<<8;
+    c=fram.read8(2*a+1);
+    b=b+(c & 0xFF);
+    a=a+128;
+   asd=b+asd;
+}
+aa[i]=asd/14;
+ 
+ asd=0;
 }
 for(i=0;i<128;i++){
- for(a=0;a<=4095;a++){
-    c=fram.read8(a);
-    b=c<<8;
-    c=fram.read8(a+1);
-    b=b+(c & 0xFF);
-  asd=asd+b;
-  a=a+128;
-  Serial.println(asd);
- }
-    pixels[i]=asd/32;
   
-asd=0;
+Serial.print(aa[i]);
+}
+/*
+ for(a=0;a<2048;a++){
+    c=fram.read8(2*a);
+    b=c<<8;
+    c=fram.read8(2*a+1);
+    b=b+(c & 0xFF);
+   asd=asd+b;
+//  Serial.println(asd);
+ }
+ asd=asd/2048;
+ Serial.println(asd);
+   
+  */
 
-}  
+
+ /*
 for(i=0;i<128;i++){
       
         if(pixels[i]!=aa[i]){
@@ -168,10 +181,10 @@ for(i=0;i<128;i++){
         tft.drawPixel(pixels[i]/5, 2*i, BLACK);
         tft.drawPixel(pixels[i]/5, (2*i)+1, BLACK);
    tft.drawPixel(80/5, (2*i), RED);
-    }
-    
+    }}
+    */
 
-} 
+
       }
   
 
