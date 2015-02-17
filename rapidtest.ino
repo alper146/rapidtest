@@ -156,9 +156,9 @@ aa[i]=asd/14;
 for(i=0;i<128;i++){
   c=aa[i];
 Serial.write((c>>8) );
-delay(1);
+delay(10);
 Serial.write(c&0xFF);
-delay(1);
+delay(10);
 }
 /*
  for(a=0;a<2048;a++){

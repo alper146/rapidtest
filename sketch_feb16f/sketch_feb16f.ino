@@ -1,5 +1,6 @@
 #include <avr/io.h>
-
+#include <Adafruit_GFX.h>    // Core graphics library
+#include "SWTFT.h" // Hardware-specific library
 #define F_CPU 16000000UL
 
  int a,i;
@@ -12,44 +13,49 @@ int b=0,d=0;
 #define MAGENTA 0xF81F
 #define YELLOW  0xFFE0
 #define WHITE   0xFFFF
+SWTFT tft;
 uint16_t aa[128]={0};
+uint16_t bb[128]={0};
 uint16_t pix[128]={0};
 int c=0;
 void setup(void){
 Serial.begin(9600);
-
-
+  uint16_t identifier = tft.readID();
+  tft.begin(identifier);
+ tft.fillScreen(BLUE );
 
 }
 void loop(void){
-while(c<128){
-if (Serial.available()) {
-a=Serial.read();
+  
+while (Serial.available()<62) {} 
+for(int n=0; n<62; n++){
+  aa[n] = Serial.read();
+}
+while (Serial.available()<62) {} 
+for(int n=0; n<62; n++){
+  aa[n+62] = Serial.read();
+}
+while (Serial.available()<4) {} 
+for(int n=0; n<4; n++){
+  aa[n+124] = Serial.read();
+}
+for(int n=0; n<128; n=n+2){
+  
+ bb[n]=(aa[n]<<8)+(aa[n+1]&0xFF);
 
+c=1;}
 
-if(b==0){
-  aa[c]=a<<8;
- 
-      b=1;  }
-              else{
-          b=0;
-  aa[c]=aa[c]+(a&0xFF);
-c++; 
-         Serial.println(aa[c]);         }
-         
-}  }  
-
-
+if(c==1){
   for(i=0;i<128;i++){
          
 
-      //   tft.drawFastHLine(20, (2*i)+1,pix[i], RED);
-       // tft.drawFastHLine(20, (2*i)+1,aa[i], BLACK);
+         tft.drawFastHLine(20, (2*i)+1,pix[i], RED);
+        tft.drawFastHLine(20, (2*i)+1,bb[i], BLACK);
    
-    }
+    }}
     for(i=0;i<128;i++){
-pix[i]=aa[i];
-}
+pix[i]=bb[i];
+c=0;}
 
 
 }
