@@ -82,13 +82,13 @@ ISR(ADC_vect) {
   }
   ADCSRA |= (1 << ADSC); 
 }
-
-
+const int buttonPin = 2; 
+int buttonState = 0; 
 void setup() {
  
   Serial.begin(9600);
 
-
+  pinMode(buttonPin, INPUT);   
 
 
  fram.begin();
@@ -123,7 +123,11 @@ void setup() {
 
 void loop() {
 
+ 
 
+  // check if the pushbutton is pressed.
+  // if it is, the buttonState is HIGH:
+  while( !(digitalRead(buttonPin) == HIGH)){}
 
 a=0;
 while(a<2048){
@@ -192,4 +196,3 @@ for(i=0;i<128;i++){
   
 
  
-
