@@ -14,7 +14,7 @@ int b=0,d=0;
 #define YELLOW  0xFFE0
 #define WHITE   0xFFFF
 SWTFT tft;
-uint16_t aa[128]={0};
+uint16_t aa[256]={0};
 uint16_t bb[128]={0};
 uint16_t pix[128]={0};
 int c=0;
@@ -35,24 +35,32 @@ while (Serial.available()<62) {}
 for(int n=0; n<62; n++){
   aa[n+62] = Serial.read();
 }
-while (Serial.available()<4) {} 
-for(int n=0; n<4; n++){
+while (Serial.available()<62) {} 
+for(int n=0; n<62; n++){
   aa[n+124] = Serial.read();
 }
-for(int n=0; n<128; n=n+2){
+while (Serial.available()<62) {} 
+for(int n=0; n<62; n++){
+  aa[n+186] = Serial.read();
+}
+while (Serial.available()<8) {} 
+for(int n=0; n<8; n++){
+  aa[n+248] = Serial.read();
+}
+for(int n=0; n<128; n=n+1){
   
- bb[n]=(aa[n]<<8)+(aa[n+1]&0xFF);
+ bb[n]=(aa[2*n]<<8)+(aa[2*n+1]&0xFF);
 
-c=1;}
+}
 
-if(c==1){
+
   for(i=0;i<128;i++){
          
 
-         tft.drawFastHLine(20, (2*i)+1,pix[i], RED);
-        tft.drawFastHLine(20, (2*i)+1,bb[i], BLACK);
+         tft.drawFastHLine(20, (2*i)+1,pix[i]/5, RED);
+        tft.drawFastHLine(20, (2*i)+1,bb[i]/5, BLACK);
    
-    }}
+    }
     for(i=0;i<128;i++){
 pix[i]=bb[i];
 c=0;}
