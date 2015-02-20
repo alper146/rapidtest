@@ -4,7 +4,8 @@
 #define F_CPU 16000000UL
 
  int a,i;
-int b=0,d=0;
+int b=0;
+long d=0;
 #define	BLACK   0x0000
 #define	BLUE    0x001F
 #define	RED     0xF800
@@ -26,7 +27,15 @@ Serial.begin(9600);
 
 }
 void loop(void){
-  
+  while (Serial.available()<1) {} 
+  tft.fillRect(20,280,280,280,BLUE);
+d=Serial.read();
+d=0;
+tft.fillRect(20,280,280,280,BLUE);
+tft.setCursor(20, 280);
+tft.setTextSize(3);
+tft.println("LOADING...");
+
 while (Serial.available()<62) {} 
 for(int n=0; n<62; n++){
   aa[n] = Serial.read();
@@ -47,13 +56,18 @@ while (Serial.available()<8) {}
 for(int n=0; n<8; n++){
   aa[n+248] = Serial.read();
 }
+tft.fillRect(20,280,280,280,BLUE);
+
 for(int n=0; n<128; n=n+1){
   
  bb[n]=(aa[2*n]<<8)+(aa[2*n+1]&0xFF);
-
+d=d+bb[n];
 }
-
-
+d=d/128;
+tft.setCursor(20, 280);
+tft.setTextSize(3);
+tft.println(d);
+d=0;
   for(i=0;i<128;i++){
          
 

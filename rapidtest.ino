@@ -31,7 +31,8 @@ uint8_t CLKcycleCounter = 0;
 uint16_t pixels[L_ARRAY] = {0}; 
 volatile uint16_t data=0;
  uint16_t prepix[L_ARRAY] = {0}; 
- uint16_t aa[L_ARRAY] = {0};
+float uint16_t aa[L_ARRAY] = {0};
+ float gain[L_ARRAY] = {1};
  
 // D7=CLK
 // D6=SI
@@ -84,28 +85,26 @@ ISR(ADC_vect) {
 }
 const int buttonPin = 2; 
 int buttonState = 0; 
+int calibState = 0; 
+const int calibPin = 3;
+void fram_write(void);
+void fram_read(void);
+void determine_gains(void);
 void setup() {
- 
   Serial.begin(9600);
-
-  pinMode(buttonPin, INPUT);   
-
-
- fram.begin();
- 
- DDRB |= (1 << PINB2) | (1 << PINB3);
+  pinMode(buttonPin, INPUT);
+  pinMode(3, INPUT);
+  fram.begin();
+  DDRB |= (1 << PINB2) | (1 << PINB3);
   PORTB &= ~(1 << PINB2); 
-  PORTB &= ~(1 << PINB3); 
- 
-  
+  PORTB &= ~(1 << PINB3);
   ADCSRA = 0; 
   ADCSRA |= (1 << ADEN); 
   ADCSRA |= (1 << ADPS2); 
   ADCSRA |= (1 << ADIE); 
   ADMUX |= ((1 << ADLAR) | (1 << REFS0)); 
-    pinMode(10, OUTPUT); 
-      pinMode(11, OUTPUT); 
- 
+  pinMode(10, OUTPUT); 
+  pinMode(11, OUTPUT); 
   PORTB |= (1 << PINB3); 
   __asm__("nop\n\t"); 
   __asm__("nop\n\t"); 
@@ -115,22 +114,33 @@ void setup() {
   PORTB &= ~(1 << PINB3); 
   __asm__("nop\n\t"); 
   __asm__("nop\n\t"); 
- PORTB &= ~(1 << PINB2); 
-
-
+  PORTB &= ~(1 << PINB2); 
   ADCSRA |= (1 << ADSC);
 }
 
 void loop() {
-
- 
-
-  // check if the pushbutton is pressed.
-  // if it is, the buttonState is HIGH:
-  while( !(digitalRead(buttonPin) == HIGH)){}
-
-a=0;
-while(a<2048){
+  while( !((digitalRead(buttonPin) == HIGH)||(digitalRead(3)==HIGH))){}
+  if(digitalRead(buttonPin)){
+  Serial.write(11 );
+  delay(100);
+  a=0;
+  fram_write();   
+ fram_read();
+ send_values();
+  }
+  if(digitalRead(calibPin)){
+   Serial.write(11 );
+  delay(100);
+  a=0;
+  fram_write();   
+ fram_read();
+ determine_gains();
+ send_values();
+  }
+    }
+    
+ void inline fram_write(void){
+   while(a<4096){
  for(i=0;i<128;i++){
    c=prepix[i];
 fram.write8(2*a, (c>>8));
@@ -139,60 +149,42 @@ fram.write8(2*a, (c>>8));
  }
  
  }
-    
+ 
+  }
+void inline fram_read(void){
 
-a=0;
-asd=0;
-for(i=0;i<128;i++){
+ a=0;
+  asd=0;
+  for(i=0;i<128;i++){
   a=i;
-while(a<2049){
-c=fram.read8(2*a);
-    b=c<<8;
-    c=fram.read8(2*a+1);
-    b=b+(c & 0xFF);
-    a=a+128;
-   asd=b+asd;
+  while(a<4096){
+  c=fram.read8(2*a);
+  b=c<<8;
+  c=fram.read8(2*a+1);
+  b=b+(c & 0xFF);
+  a=a+128;
+  asd=b+asd;
 }
-aa[i]=asd/14;
+aa[i]=asd/32;
  
  asd=0;
 }
-for(i=0;i<128;i++){
-  c=aa[i];
+}
+void inline send_values(void){
+  for(i=0;i<128;i++){
+  c=aa[i]*gain[i];
 Serial.write((c>>8) );
 delay(10);
 Serial.write(c&0xFF);
 delay(10);
 }
-/*
- for(a=0;a<2048;a++){
-    c=fram.read8(2*a);
-    b=c<<8;
-    c=fram.read8(2*a+1);
-    b=b+(c & 0xFF);
-   asd=asd+b;
-//  Serial.println(asd);
- }
- asd=asd/2048;
- Serial.println(asd);
-   
-  */
 
-
- /*
+}
+void inline determine_gains(void){
 for(i=0;i<128;i++){
-      
-        if(pixels[i]!=aa[i]){
-        tft.drawPixel(aa[i]/5, (2*i), BLUE);
-         tft.drawPixel(aa[i]/5, (2*i)+1, BLUE);
-        tft.drawPixel(pixels[i]/5, 2*i, BLACK);
-        tft.drawPixel(pixels[i]/5, (2*i)+1, BLACK);
-   tft.drawPixel(80/5, (2*i), RED);
-    }}
-    */
+  gain[i]=1023/aa[i];
+}
 
-
-      }
-  
+}
 
  
