@@ -65,7 +65,7 @@ if(c==1){
    
   prepix[CLKcycleCounter+128]=data;
   }
-     //int b=analogRead(A0);
+  
 
     
     CLKcycleCounter++; 
